@@ -1,9 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Creates a Private API Gateway integrated to a Network Load Balancer
+Description: Creates a Private REST API Gateway integrated to a Network Load Balancer
 
 Parameters:
-  
   ApiName:
     Type: String
     Default: CustomerManager
@@ -32,7 +31,6 @@ Parameters:
     Default: tg
 
 Resources:
-
   SecurityGroupVPCEndpoint:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -51,14 +49,14 @@ Resources:
   VPCEndpoint:
     Type: AWS::EC2::VPCEndpoint
     DependsOn: SecurityGroupVPCEndpoint
-    Properties: 
+    Properties:
       ServiceName: com.amazonaws.us-east-2.execute-api
       VpcEndpointType: Interface
       PrivateDnsEnabled: true
       VpcId: !Ref VpcId
-      SecurityGroupIds: 
+      SecurityGroupIds:
         - !Ref SecurityGroupVPCEndpoint
-      SubnetIds: 
+      SubnetIds:
         - !Ref SubnetId1
         - !Ref SubnetId2
 
@@ -83,7 +81,7 @@ Resources:
       Tags:
         - Key: Owner
           Value: !Ref Owner
-  
+
   CustomerResource:
     Type: AWS::ApiGateway::Resource
     DependsOn: RestApi
@@ -99,9 +97,9 @@ Resources:
       RestApiId: !Ref RestApi
       ParentId: !Ref CustomerResource
       PathPart: "{customer_id}"
-    
-  MethodGetCustomers: 
-    Type: 'AWS::ApiGateway::Method'
+
+  MethodGetCustomers:
+    Type: "AWS::ApiGateway::Method"
     DependsOn: RestApi
     Properties:
       RestApiId: !Ref RestApi
@@ -109,7 +107,7 @@ Resources:
       HttpMethod: GET
       AuthorizationType: NONE
       RequestParameters:
-        'method.request.querystring.customer_name': false
+        "method.request.querystring.customer_name": false
       MethodResponses:
         - StatusCode: 200
         - StatusCode: 500
@@ -123,8 +121,8 @@ Resources:
         IntegrationHttpMethod: GET
         Uri: !Sub ${LoadBalancerDNS}/customers
 
-  MethodPostCustomers: 
-    Type: 'AWS::ApiGateway::Method'
+  MethodPostCustomers:
+    Type: "AWS::ApiGateway::Method"
     DependsOn: RestApi
     Properties:
       RestApiId: !Ref RestApi
@@ -144,8 +142,8 @@ Resources:
         IntegrationHttpMethod: POST
         Uri: !Sub ${LoadBalancerDNS}/customers
 
-  MethodGetCustomersById: 
-    Type: 'AWS::ApiGateway::Method'
+  MethodGetCustomersById:
+    Type: "AWS::ApiGateway::Method"
     DependsOn: RestApi
     Properties:
       RestApiId: !Ref RestApi
@@ -153,7 +151,7 @@ Resources:
       HttpMethod: GET
       AuthorizationType: NONE
       RequestParameters:
-        'method.request.path.customer_id': true
+        "method.request.path.customer_id": true
       MethodResponses:
         - StatusCode: 200
         - StatusCode: 404
@@ -163,7 +161,7 @@ Resources:
         ConnectionId: !Ref VpcLinkId
         ConnectionType: VPC_LINK
         RequestParameters:
-          'integration.request.path.customer_id': "method.request.path.customer_id"
+          "integration.request.path.customer_id": "method.request.path.customer_id"
         IntegrationResponses:
           - StatusCode: 200
           - StatusCode: 404
@@ -171,8 +169,8 @@ Resources:
         IntegrationHttpMethod: GET
         Uri: !Sub ${LoadBalancerDNS}/customers/{customer_id}
 
-  MethodPutCustomersById: 
-    Type: 'AWS::ApiGateway::Method'
+  MethodPutCustomersById:
+    Type: "AWS::ApiGateway::Method"
     DependsOn: RestApi
     Properties:
       RestApiId: !Ref RestApi
@@ -180,7 +178,7 @@ Resources:
       HttpMethod: PUT
       AuthorizationType: NONE
       RequestParameters:
-        'method.request.path.customer_id': true
+        "method.request.path.customer_id": true
       MethodResponses:
         - StatusCode: 204
         - StatusCode: 404
@@ -190,7 +188,7 @@ Resources:
         ConnectionId: !Ref VpcLinkId
         ConnectionType: VPC_LINK
         RequestParameters:
-          'integration.request.path.customer_id': "method.request.path.customer_id"
+          "integration.request.path.customer_id": "method.request.path.customer_id"
         IntegrationResponses:
           - StatusCode: 204
           - StatusCode: 404
@@ -198,8 +196,8 @@ Resources:
         IntegrationHttpMethod: PUT
         Uri: !Sub ${LoadBalancerDNS}/customers/{customer_id}
 
-  MethodDeleteCustomersById: 
-    Type: 'AWS::ApiGateway::Method'
+  MethodDeleteCustomersById:
+    Type: "AWS::ApiGateway::Method"
     DependsOn: RestApi
     Properties:
       RestApiId: !Ref RestApi
@@ -207,7 +205,7 @@ Resources:
       HttpMethod: DELETE
       AuthorizationType: NONE
       RequestParameters:
-        'method.request.path.customer_id': true
+        "method.request.path.customer_id": true
       MethodResponses:
         - StatusCode: 204
         - StatusCode: 404
@@ -217,7 +215,7 @@ Resources:
         ConnectionId: !Ref VpcLinkId
         ConnectionType: VPC_LINK
         RequestParameters:
-          'integration.request.path.customer_id': "method.request.path.customer_id"
+          "integration.request.path.customer_id": "method.request.path.customer_id"
         IntegrationResponses:
           - StatusCode: 204
           - StatusCode: 404
@@ -227,12 +225,18 @@ Resources:
 
   Deployment:
     Type: AWS::ApiGateway::Deployment
-    DependsOn: [ MethodGetCustomers, MethodPostCustomers, MethodGetCustomersById, MethodPutCustomersById, MethodDeleteCustomersById ]
+    DependsOn:
+      [
+        MethodGetCustomers,
+        MethodPostCustomers,
+        MethodGetCustomersById,
+        MethodPutCustomersById,
+        MethodDeleteCustomersById,
+      ]
     Properties:
       RestApiId: !Ref RestApi
       StageName: !Ref StageName
 
 Outputs:
-
   ApiGatewayId:
     Value: !Ref RestApi
